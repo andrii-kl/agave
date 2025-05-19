@@ -236,6 +236,11 @@ impl ContactInfo {
     pub fn version(&self) -> &solana_version::Version {
         &self.version
     }
+    
+    #[inline]
+    pub fn addrs(&self) -> &[IpAddr] {
+        &self.addrs
+    }
 
     pub fn hot_swap_pubkey(&mut self, pubkey: Pubkey) {
         self.pubkey = pubkey;
