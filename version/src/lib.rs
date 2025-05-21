@@ -15,13 +15,25 @@ extern crate solana_frozen_abi_macro;
 mod legacy;
 
 #[derive(Debug, Eq, PartialEq)]
-enum ClientId {
+pub enum ClientId {
     SolanaLabs,
     JitoLabs,
     Firedancer,
     Agave,
     // If new variants are added, update From<u16> and TryFrom<ClientId>.
     Unknown(u16),
+}
+
+impl fmt::Display for ClientId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ClientId::SolanaLabs => write!(f, "SolanaLabs"),
+            ClientId::JitoLabs => write!(f, "JitoLabs"),
+            ClientId::Firedancer => write!(f, "Firedancer"),
+            ClientId::Agave => write!(f, "Agave"),
+            ClientId::Unknown(id) => write!(f, "Unknown({})", id),
+        }
+    }
 }
 
 #[cfg_attr(feature = "frozen-abi", derive(AbiExample))]
@@ -36,7 +48,7 @@ pub struct Version {
     pub commit: u32,      // first 4 bytes of the sha1 commit hash
     pub feature_set: u32, // first 4 bytes of the FeatureSet identifier
     #[serde(with = "serde_varint")]
-    client: u16,
+    pub client: u16,
 }
 
 impl Version {
@@ -44,7 +56,7 @@ impl Version {
         semver::Version::new(self.major as u64, self.minor as u64, self.patch as u64)
     }
 
-    fn client(&self) -> ClientId {
+    pub fn client(&self) -> ClientId {
         ClientId::from(self.client)
     }
 }
