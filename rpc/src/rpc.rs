@@ -3726,6 +3726,7 @@ pub mod rpc_full {
                                 .rpc_pubsub()
                                 .filter(|addr| socket_addr_space.check(addr)),
                             version,
+                            client: None, // TODO: Not implemented here
                             feature_set,
                             shred_version: Some(my_shred_version),
                         })
