@@ -553,6 +553,22 @@ impl ClusterInfo {
                 }
 
                 let node_version = self.get_node_version(node.pubkey());
+                
+                let node_version_str = if let Some(node_version) = node_version {
+                    let client_str = match node_version.client {
+                        0 => "SolanaLabs",
+                        1 => "JitoLabs", 
+                        2 => "Firedancer",
+                        3 => "Agave",
+                        4 => "Paladin",
+                        _ => "Unknown",
+                    };
+                    format!("{:?}.{:?}.{:?}-{}", node_version.major, node_version.minor, node_version.patch, client_str)
+                } else {
+                    "-".to_string()
+                };
+
+                // println!("Node version: {:?}", node_version);
                 if my_shred_version != 0 && (node.shred_version() != 0 && node.shred_version() != my_shred_version) {
                     different_shred_nodes = different_shred_nodes.saturating_add(1);
                     None
@@ -573,11 +589,7 @@ impl ClusterInfo {
                         if node.pubkey() == &my_pubkey { "me" } else { "" },
                         now.saturating_sub(last_updated),
                         node.pubkey().to_string(),
-                        if let Some(node_version) = node_version {
-                            node_version.to_string()
-                        } else {
-                            "-".to_string()
-                        },
+                        node_version_str,
                         self.addr_to_string(&ip_addr, &node.gossip()),
                         self.addr_to_string(&ip_addr, &node.tpu_vote(contact_info::Protocol::UDP)),
                         self.addr_to_string(&ip_addr, &node.tpu(contact_info::Protocol::UDP)),
@@ -1023,6 +1035,19 @@ impl ClusterInfo {
 
     pub fn get_node_version(&self, pubkey: &Pubkey) -> Option<solana_version::Version> {
         let gossip_crds = self.gossip.crds.read().unwrap();
+
+        println!("Gossip crds: {:?}", gossip_crds.get::<&ContactInfo>(*pubkey));
+        
+        let version = gossip_crds
+            .get::<&ContactInfo>(*pubkey)
+            .map(ContactInfo::version)
+            .cloned();
+        
+        if let Some(version) = &version {
+            println!("Semantic version: {}.{}.{}", version.major, version.minor, version.patch);
+            println!("Client: {}", version.client);
+        }
+        
         gossip_crds
             .get::<&ContactInfo>(*pubkey)
             .map(ContactInfo::version)
